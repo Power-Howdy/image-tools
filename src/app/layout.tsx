@@ -12,6 +12,19 @@ export const metadata: Metadata = {
   title: "ImageTools - Quick Image Utilities",
   description:
     "Free online image tools: compress, resize, crop, convert formats, remove background. No upload required - all processing in your browser.",
+  keywords: [
+    "image compressor",
+    "image resize",
+    "image crop",
+    "remove background",
+    "PNG to JPG",
+    "WebP to PNG",
+    "base64 image",
+    "online image editor",
+    "free image tools",
+    "privacy-first",
+    "client-side image processing",
+  ],
   icons: {
     icon: "/icon.png",
   },
