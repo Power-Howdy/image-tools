@@ -217,10 +217,13 @@ export function ImageToolsClient() {
   );
 
   useEffect(() => {
-    if (state?.file && activeTool !== "crop") {
-      processFile(state.file);
+    // Clear image when switching tools so user must re-upload
+    if (state) {
+      if (state.originalUrl) URL.revokeObjectURL(state.originalUrl);
+      setState(null);
+      setCropArea(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTool]);
 
   const handleCropApply = useCallback(() => {
