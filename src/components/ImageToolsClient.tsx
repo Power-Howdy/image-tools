@@ -18,6 +18,7 @@ import { resizeImage } from "@/tools/resize";
 import { compressImage } from "@/tools/compressor";
 import { removeBackground } from "@/tools/backgroundRemover";
 import { cropImage } from "@/tools/crop";
+import { upscaleImage } from "@/tools/imageUpscaler";
 import type { PercentCrop } from "react-image-crop";
 
 function formatSize(bytes: number): string {
@@ -49,6 +50,7 @@ export function ImageToolsClient() {
   const [maintainAspect, setMaintainAspect] = useState(true);
   const [compressQuality, setCompressQuality] = useState(0.8);
   const [cropArea, setCropArea] = useState<PercentCrop | null>(null);
+  const [upscaleScale, setUpscaleScale] = useState<2 | 3 | 4>(2);
 
   const getImageDimensions = useCallback(
     (file: File): Promise<{ width: number; height: number }> => {
@@ -76,7 +78,7 @@ export function ImageToolsClient() {
       }
 
       const hasProgress =
-        activeTool === "compressor" || activeTool === "background-remover";
+        activeTool === "compressor" || activeTool === "background-remover" || activeTool === "upscale";
       setState({
         file,
         originalUrl: url,
@@ -133,6 +135,13 @@ export function ImageToolsClient() {
             });
             break;
           }
+          case "upscale": {
+            resultBlob = await upscaleImage(file, (key, current, total) => {
+              const p = total > 0 ? Math.round((current / total) * 100) : 0;
+              setState((s) => (s ? { ...s, progress: p } : null));
+            }, 2);
+            break;
+          }
           case "crop": {
             if (cropArea && cropArea.width > 0 && cropArea.height > 0 && dims) {
               resultBlob = await cropImage(
@@ -167,6 +176,7 @@ export function ImageToolsClient() {
           compressor: "Compressed",
           resize: "Resize complete",
           crop: "Crop complete",
+          upscale: "Upscale complete",
           "background-remover": "Background removed",
           base64: "Base64 encoded",
           "png-to-jpg": "Converted to JPG",
@@ -332,7 +342,7 @@ export function ImageToolsClient() {
             {/* Tool-specific controls */}
             {activeTool === "resize" && (
               <div className="rounded-2xl border border-neutral-200/50 dark:border-neutral-800/50 bg-white dark:bg-neutral-900/50 p-4 shadow-sm space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap- 3">
                   <div>
                     <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
                       Width
@@ -399,6 +409,51 @@ export function ImageToolsClient() {
                 <button
                   onClick={() => processFile(state.file)}
                   className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+                >
+                  Apply
+                </button>
+              </div>
+            )}
+            {activeTool === "upscale" && !state.resultBlob && (
+              <div className="rounded-2xl border border-neutral-200/50 dark:border-neutral-800/50 bg-white dark:bg-neutral-900/50 p-4 shadow-sm space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
+                    Scale:
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setUpscaleScale(2)}
+                      className={`flex-1 rounded border ${upscaleScale === 2 ? "border-emerald-500 text-emerald-500" : "border-neutral-400 text-neutral-500"} py-1.5 text-sm font-medium transition-colors ${state.loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      2x
+                    </button>
+                    <button
+                      onClick={() => setUpscaleScale(3)}
+                      className={`flex-1 rounded border ${upscaleScale === 3 ? "border-emerald-500 text-emerald-500" : "border-neutral-400 text-neutral-500"} py-1.5 text-sm font-medium transition-colors ${state.loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      3x
+                    </button>
+                    <button
+                      onClick={() => setUpscaleScale(4)}
+                      className={`flex-1 rounded border ${upscaleScale === 4 ? "border-emerald-500 text-emerald-500" : "border-neutral-400 text-neutral-500"} py-1.5 text-sm font-medium transition-colors ${state.loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      4x
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
+                    Progress:
+                  </label>
+                  <progress className="w-full" value={state.progress ?? 0} max={100} />
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {state.progress ?? 0}%
+                  </span>
+                </div>
+                <button
+                  onClick={() => processFile(state.file)}
+                  className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={state.loading}
                 >
                   Apply
                 </button>

@@ -1,4 +1,14 @@
+import model2x from "@upscalerjs/esrgan-slim/2x";
+import model3x from "@upscalerjs/esrgan-slim/3x";
+import model4x from "@upscalerjs/esrgan-slim/4x";
+
 type UpscaleScale = 2 | 3 | 4;
+
+const MODEL_BY_SCALE = {
+  2: model2x,
+  3: model3x,
+  4: model4x,
+} as const;
 
 // Cache one Upscaler instance per scale so the model isn't reloaded on every call
 const upscalerCache = new Map<UpscaleScale, Promise<any>>();
@@ -10,8 +20,7 @@ async function getUpscaler(scale: UpscaleScale) {
       (async () => {
         await import("@tensorflow/tfjs");
         const { default: Upscaler } = await import("upscaler");
-        const model = (await import(`@upscalerjs/esrgan-slim/${scale}x`)).default;
-        return new Upscaler({ model });
+        return new Upscaler({ model: MODEL_BY_SCALE[scale] });
       })()
     );
   }

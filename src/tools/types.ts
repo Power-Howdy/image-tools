@@ -5,7 +5,8 @@ export type ToolId =
   | "background-remover"
   | "resize"
   | "crop"
-  | "webp-to-png";
+  | "webp-to-png"
+  | "upscale";
 
 export interface ToolConfig {
   id: ToolId;
@@ -25,4 +26,5 @@ export const TOOLS: ToolConfig[] = [
   { id: "resize", label: "Resize", description: "Resize dimensions" },
   { id: "crop", label: "Crop", description: "Crop image" },
   { id: "webp-to-png", label: "WEBP → PNG", description: "Convert WEBP to PNG" },
+  { id: "upscale", label: "Upscale", description: "Increase image resolution" },
 ];
